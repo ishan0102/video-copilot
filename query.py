@@ -1,21 +1,21 @@
 """
 Sieve workflow to query copilot for video editing.
 """
-from typing import List
+from typing import Dict, List
 
 import sieve
 
 
 @sieve.function(
-    name="get_actions",
+    name="get_commands",
     python_packages=[
         "openai==0.27.2",
         "python-dotenv==0.21.1",
     ],
-    iterator_input=True,
     persist_output=True,
+    iterator_input=True,
 )
-def get_actions(videos: List[sieve.Video], instructions: str) -> str:
+def get_commands(videos: sieve.Video, instructions: str) -> str:
     import json
     import os
 
@@ -25,8 +25,14 @@ def get_actions(videos: List[sieve.Video], instructions: str) -> str:
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    video_strs = [f"ID - {video.name}\nLENGTH - {video.frame_count / video.fps}s\n" for video in videos]
+    video_strs = []
+    for video in videos:
+        video_metadata = f"ID - {video.url.split('/')[-1]}\nLENGTH - {video.frame_count / video.fps}s\n"
+        print(video_metadata)
+        video_strs.append(video_metadata)
     video_str = "\n\n".join(video_strs)
+    print(video_str)
+
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -45,12 +51,20 @@ def get_actions(videos: List[sieve.Video], instructions: str) -> str:
         ],
     )
 
-    actions = json.dumps(response.choices[0].message.content).split("\n\n")
-    for action in actions:
-        yield action
+    commands = json.dumps(response.choices[0].message.content).split("\n\n")
+    for command in commands:
+        yield command
+
+
+@sieve.function(name="create_videos")
+def create_videos(videos: List) -> sieve.Video:
+    for video in videos:
+        print(f"Creating video {video['url']}")
+        yield sieve.Video(url=video["url"])
 
 
 @sieve.workflow(name="copilot_query")
-def copilot_query(videos: List[sieve.Video], instructions: str) -> str:
+def copilot_query(videos: List[Dict], instructions: str) -> str:
     # TODO: instead of asking for videos as input, we should be fetching them from the database based on the instructions
-    return get_actions(videos, instructions)
+    videos = create_videos(videos)
+    return get_commands(videos, instructions)
