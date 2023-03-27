@@ -5,7 +5,11 @@ import sieve
     name="video-splitter-with-metadata",
     gpu=False,
     python_packages=["ffmpeg-python==0.2.0"],
-    system_packages=["libgl1-mesa-glx", "libglib2.0-0", "ffmpeg"],
+    system_packages=[
+        "libgl1-mesa-glx",
+        "libglib2.0-0",
+        "ffmpeg",
+    ],
     python_version="3.8",
     iterator_input=True,
 )

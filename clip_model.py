@@ -4,7 +4,10 @@ import sieve
 @sieve.Model(
     name="clip",
     gpu=False,
-    python_packages=["torch==1.8.1", "git+https://github.com/openai/CLIP.git"],
+    python_packages=[
+        "torch==1.8.1",
+        "git+https://github.com/openai/CLIP.git",
+    ],
     run_commands=[
         "mkdir -p /root/.cache/clip",
         "wget -O /root/.cache/clip/ViT-B-32.pt https://openaipublic.azureedge.net/clip/models/40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af/ViT-B-32.pt",
