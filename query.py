@@ -1,20 +1,23 @@
 """
 Sieve workflow to query copilot for video editing.
 """
+from typing import List
+
 import sieve
 
 
 @sieve.function(
     name="get_actions",
     python_packages=[
-        "openai==0.26.5",
+        "openai==0.27.2",
         "python-dotenv==0.21.1",
     ],
+    iterator_input=True,
     persist_output=True,
 )
-def get_actions(command: str) -> str:
-    import os
+def get_actions(videos: List[sieve.Video], instructions: str) -> str:
     import json
+    import os
 
     import openai
     from dotenv import load_dotenv
@@ -22,6 +25,8 @@ def get_actions(command: str) -> str:
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
+    video_strs = [f"ID - {video.name}\nLENGTH - {video.frame_count / video.fps}s\n" for video in videos]
+    video_str = "\n\n".join(video_strs)
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -36,6 +41,7 @@ def get_actions(command: str) -> str:
             {"role": "assistant", "content": "COMMANDS:\nID: person.mp4\nSTART: 0\nEND: 10s\nACTIONS:\n\nID: person.mp4\nSTART: 0\nEND: 10s\nACTIONS: DARKEN"},
             {"role": "user", "content": "VIDEOS:\nID: hello.mp4\nLENGTH - 500s\n\nID: hello1.mp4\nLENGTH - 20s\n\nINSTRUCTIONS:\nCreate a video with the original videos each with their backgrounds removed in order of shortest to longest. Then add the drone angle to the beginning."},
             {"role": "assistant", "content": 'COMMANDS:\nQUERY: "drone angle"\nSTART: 0\nEND: 1\nACTIONS:\n\nID: hello1.mp4\nSTART: 0\nEND: 20s\nACTIONS: BG_REMOVE\n\nID: hello.mp4\nSTART: 0\nEND: 500s\nACTIONS: BG_REMOVE'},
+            {"role": "user", "content": f"VIDEOS:\n{video_str}\nINSTRUCTIONS:\n{instructions}"},
         ],
     )
 
@@ -45,5 +51,6 @@ def get_actions(command: str) -> str:
 
 
 @sieve.workflow(name="copilot_query")
-def copilot_query(command: str) -> str:
-    return get_actions(command)
+def copilot_query(videos: List[sieve.Video], instructions: str) -> str:
+    # TODO: instead of asking for videos as input, we should be fetching them from the database based on the instructions
+    return get_actions(videos, instructions)
