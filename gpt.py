@@ -61,3 +61,4 @@ def get_commands(videos: sieve.Video, instructions: str) -> Dict:
 
     for command in commands:
         yield command
+        
