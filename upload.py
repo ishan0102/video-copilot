@@ -5,12 +5,12 @@ from typing import Dict, List
 
 import sieve
 
-from clip_model import Clip
-from splitter import VideoSplitter
+from clip_model import ClipImageEncoder
+from splitter import video_splitter
 
 
 @sieve.function(
-    name="pinecone_upload",
+    name="pinecone-upload",
     python_packages=[
         "pinecone-client==2.2.1",
         "python-dotenv==0.21.1",
@@ -35,10 +35,7 @@ def pinecone_upload(clip_embeddings: List, user_id: str):
 
     vectors = []
     for clip_embedding in clip_embeddings:
-        vector_id = clip_embedding["metadata"]["id"]
-        vector = clip_embedding["features"]
-        metadata = clip_embedding["metadata"]
-        vectors.append((vector_id, vector, metadata))
+        vectors.append((clip_embedding["id"], clip_embedding["features"], clip_embedding["metadata"]))
 
     # HACK: convert iterator input to string
     for user in user_id:
@@ -54,7 +51,7 @@ def pinecone_upload(clip_embeddings: List, user_id: str):
 
 @sieve.workflow(name="copilot_upload")
 def copilot_upload(video: sieve.Video, name: str, user_id: str) -> Dict:
-    images = VideoSplitter(video, name)
-    clip_outputs = Clip()(images)
+    images = video_splitter(video, name)
+    clip_outputs = ClipImageEncoder()(images)
     response = pinecone_upload(clip_outputs, user_id)
     return clip_outputs

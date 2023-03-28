@@ -13,7 +13,7 @@ import sieve
     python_version="3.8",
     iterator_input=True,
 )
-def VideoSplitter(video: sieve.Video, name: str) -> sieve.Image:
+def video_splitter(video: sieve.Video, name: str) -> sieve.Image:
     for vid, na in zip(video, name):
         # use ffmpeg to extract all frames in video as bmp files and return the path to the folder
         import tempfile

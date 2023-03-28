@@ -4,7 +4,7 @@ import sieve
 
 
 @sieve.function(
-    name="get_commands",
+    name="get-gpt-commands",
     python_packages=[
         "openai==0.27.2",
         "python-dotenv==0.21.1",
@@ -12,7 +12,7 @@ import sieve
     persist_output=True,
     iterator_input=True,
 )
-def get_commands(videos: sieve.Video, instructions: str) -> Dict:
+def get_gpt_commands(videos: sieve.Video, instructions: str) -> Dict:
     import json
     import os
 
