@@ -41,5 +41,4 @@ class Clip:
             image_features = self.model.encode_image(preprocessed_image)
             features = list(image_features.cpu().detach().numpy()[0])
             features = [float(x) for x in features]
-            print(type(features), type(features[0]), len(features))
             yield {"features": features, "metadata": metadata}

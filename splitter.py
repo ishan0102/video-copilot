@@ -37,11 +37,10 @@ def VideoSplitter(video: sieve.Video, name: str) -> sieve.Image:
         import uuid
 
         filenames = os.listdir(temp_dir)
-        print("num frames", len(filenames))
+        print(f"Splitting {vid.path} into {len(filenames)} frames")
         filenames.sort()
         for i, filename in enumerate(filenames):
             frame_number = i * vid.fps
-            print(os.path.join(temp_dir, filename), i)
             yield sieve.Image(
                 path=os.path.join(temp_dir, filename),
                 frame_number=frame_number,
