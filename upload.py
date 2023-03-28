@@ -5,7 +5,7 @@ from typing import Dict, List
 
 import sieve
 
-from clip_model import ClipImageEncoder
+from clip_image import ClipImageEncoder
 from splitter import video_splitter
 
 
@@ -27,10 +27,7 @@ def pinecone_upload(clip_embeddings: List, user_id: str):
 
     api_key = os.getenv("PINECONE_API_KEY")
     pinecone.init(api_key=api_key, environment="us-west1-gcp")
-
     index_name = "video-copilot"
-    if index_name not in pinecone.list_indexes():
-        pinecone.create_index(name=index_name, dimension=512, metric="cosine")
     index = pinecone.Index(index_name=index_name)
 
     vectors = []

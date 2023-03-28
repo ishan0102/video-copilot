@@ -42,33 +42,3 @@ class ClipImageEncoder:
             features = list(image_features.cpu().detach().numpy()[0])
             features = [float(x) for x in features]
             yield {"id": image.id, "features": features, "metadata": metadata}
-
-
-@sieve.Model(
-    name="clip-text-encoder",
-    gpu=False,
-    python_packages=[
-        "torch==1.8.1",
-        "git+https://github.com/openai/CLIP.git",
-    ],
-    run_commands=[
-        "mkdir -p /root/.cache/clip",
-        "wget -O /root/.cache/clip/ViT-B-32.pt https://openaipublic.azureedge.net/clip/models/40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af/ViT-B-32.pt",
-    ],
-    iterator_input=True,
-)
-class ClipTextEncoder:
-    def __setup__(self):
-        import clip
-
-        self.model, self.preprocess = clip.load("ViT-B/32", device="cpu")
-
-    def __predict__(self, text: str):
-        import clip
-
-        for t in text:
-            tokenized = clip.tokenize([t]).to("cpu")
-            text_features = self.model.encode_text(tokenized)
-            features = list(text_features.cpu().detach().numpy()[0])
-            features = [float(x) for x in features]
-            yield {"text": t, "features": features}
