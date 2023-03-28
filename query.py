@@ -41,7 +41,7 @@ def get_commands(videos: sieve.Video, instructions: str) -> Dict:
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=[
-            {"role": "system", "content": "You are an agent controlling a video editing tool. You are given a list of videos available and a set of sentence instructions that tell you how to manipulate those videos. Return all outputs as JSON. Only provide JSON, do not include any other text."},
+            {"role": "system", "content": "You are an agent controlling a video editing tool. You are given a list of videos available and a set of sentence instructions that tell you how to manipulate those videos. Return all outputs as JSON. Only provide JSON, do not include any other text, and nest the JSON as little as possible. The top-level key should be called commands and its value should be a JSON list."},
             {"role": "user", "content": "The VIDEOS given to you are given in a list:\n\nID - an ID or name denoting the video\nLENGTH - the length of the content in seconds\n\nThe available MANIPULATIONs are:\nDARKEN - darken the scene\nLIGHTEN - brighten the scene\nBLUR - blur the scene\nBG_REMOVE - remove the background\nBW - turn the clip to black and white\n\nThe INSTRUCTION is given to you as a list of sentences. Based on the sentences, you can issue a list of actions as shown below:\n\nIf the action is referencing a specific clip you know in the library, you will output the action as formatted below:\n\nID - the ID of the clip in the library\nSTART - start time in seconds of the clip to perform the actions\nEND - end time in seconds of the clip to perform the actions\nACTIONS - ordered, comma-separated list of MANIPULATIONS to perform\n\nIf the action doesn't seem to specify a specific video in the library, then you will issue a SEARCH command which will magically find the right clip based on their natural language description of it.\n\nQUERY - the query to search this clip by in natural language\nSTART - start time in fractional quantity of the part of the clip to perform the actions on\nEND - end time in fractional quantity of the part of the clip to perform the actions on\nACTIONS - ordered, comma-separated list of MANIPULATIONS to perform\n\nYou will return these actions in the order in which the user wants them to happen."},
             {"role": "user", "content": "Here are 4 examples:\n\n"},
             {"role": "user", "content": "VIDEOS:\nID - flower.mp4\nLENGTH - 500s\n\nID - 3453432342.mp4\nLENGTH - 2s\n\nID - shoot.mp4\nLENGTH - 145243s\n\nINSTRUCTIONS:\nCut the video of the dog to the first 10 seconds and remove its background."},
@@ -57,10 +57,13 @@ def get_commands(videos: sieve.Video, instructions: str) -> Dict:
     )
 
     try:
-        commands = json.loads(response.choices[0].message.content)
+        print(response.choices[0].message.content)
+        commands = json.loads(response.choices[0].message.content)["commands"]
     except json.JSONDecodeError:
         commands = {"commands": []}
-    return commands
+
+    for command in commands:
+        yield command
 
 
 @sieve.function(name="create_videos")
