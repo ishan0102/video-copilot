@@ -25,13 +25,18 @@ def get_commands(videos: sieve.Video, instructions: str) -> str:
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    video_strs = []
+    videos_prompt = "VIDEOS:\n"
     for video in videos:
-        video_metadata = f"ID - {video.url.split('/')[-1]}\nLENGTH - {video.frame_count / video.fps}s\n"
-        print(video_metadata)
-        video_strs.append(video_metadata)
-    video_str = "\n\n".join(video_strs)
-    print(video_str)
+        video_metadata = f"ID - {video.url.split('/')[-1]}\nLENGTH - {video.frame_count / video.fps}s\n\n"
+        videos_prompt += video_metadata
+
+    # HACK: instructions is a string but iterator_input means it has to be iterated over to get the string
+    instructions_prompt = "INSTRUCTIONS:\n"
+    for instruction in instructions:
+        instructions_prompt += instruction
+
+    print(f"videos_prompt: {videos_prompt}")
+    print(f"instructions_prompt: {instructions_prompt}")
 
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -47,12 +52,17 @@ def get_commands(videos: sieve.Video, instructions: str) -> str:
             {"role": "assistant", "content": "COMMANDS:\nID: person.mp4\nSTART: 0\nEND: 10s\nACTIONS:\n\nID: person.mp4\nSTART: 0\nEND: 10s\nACTIONS: DARKEN"},
             {"role": "user", "content": "VIDEOS:\nID: hello.mp4\nLENGTH - 500s\n\nID: hello1.mp4\nLENGTH - 20s\n\nINSTRUCTIONS:\nCreate a video with the original videos each with their backgrounds removed in order of shortest to longest. Then add the drone angle to the beginning."},
             {"role": "assistant", "content": 'COMMANDS:\nQUERY: "drone angle"\nSTART: 0\nEND: 1\nACTIONS:\n\nID: hello1.mp4\nSTART: 0\nEND: 20s\nACTIONS: BG_REMOVE\n\nID: hello.mp4\nSTART: 0\nEND: 500s\nACTIONS: BG_REMOVE'},
-            {"role": "user", "content": f"VIDEOS:\n{video_str}\nINSTRUCTIONS:\n{instructions}"},
+            {"role": "user", "content": f"VIDEOS:{videos_prompt}\n\nINSTRUCTIONS:{instructions_prompt}"},
         ],
     )
 
-    commands = json.dumps(response.choices[0].message.content).split("\n\n")
+    print(response)
+    commands = json.dumps(response.choices[0].message.content)
+    commands = commands.replace(r"COMMANDS:\n", '"')
+    commands = commands.strip('"').split(r"\n\n")
+    print(commands)
     for command in commands:
+        print(command)
         yield command
 
 
