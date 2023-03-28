@@ -29,7 +29,7 @@ def VideoSplitter(video: sieve.Video, name: str) -> sieve.Image:
                 "-i",
                 vid.path,
                 "-vf",
-                f"fps=3",
+                f"fps=1",
                 f"{temp_dir}/%09d.jpg",
             ]
         )
@@ -45,6 +45,7 @@ def VideoSplitter(video: sieve.Video, name: str) -> sieve.Image:
             yield sieve.Image(
                 path=os.path.join(temp_dir, filename),
                 frame_number=frame_number,
+                frame_count=vid.frame_count,
                 fps=vid.fps,
                 video_name=na,
                 type="frame",

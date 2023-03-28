@@ -29,6 +29,8 @@ class Clip:
                 "type": image.type,
                 "video_name": image.video_name,
                 "frame_number": image.frame_number,
+                "frame_count": image.frame_count,
+                "fps": image.fps,
                 "x0": image.x0,
                 "y0": image.y0,
                 "x1": image.x1,
