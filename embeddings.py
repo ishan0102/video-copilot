@@ -116,12 +116,14 @@ class PineconeQueryText:
             user_id = user
             break
 
+        # Perform each required query
         for command in commands:
             if "query" not in command:
                 print(f"Skipping {command} (no query)")
                 yield command
                 continue
 
+            # Encode the query text with CLIP
             print(f"Querying for {command['query']}")
             query = command["query"]
             for t in query:
@@ -130,17 +132,40 @@ class PineconeQueryText:
                 features = list(text_features.cpu().detach().numpy()[0])
                 features = [float(x) for x in features]
 
+            print(features)
+
+            # Get the top-k nearest neighbors
             matches = index.query(
                 vector=features,
-                top_k=5,
+                top_k=10,
                 namespace=user_id,
                 include_metadata=True,
+                include_values=True,
             )["matches"]
 
+            # Keep the matches that win the majority vote by video name
+            video_name_freqs = {}
+            for match in matches:
+                video_name = match["metadata"]["video_name"]
+                if video_name not in video_name_freqs:
+                    video_name_freqs[video_name] = 0
+                video_name_freqs[video_name] += 1
+
+            max_freq = float("-inf")
+            max_freq_video_name = None
+            for video_name, freq in video_name_freqs.items():
+                if freq > max_freq:
+                    max_freq = freq
+                    max_freq_video_name = video_name
+
+            matches = [match for match in matches if match["metadata"]["video_name"] == max_freq_video_name]
+
+            # Find the min and max frame numbers
             min_frame = float("inf")
             max_frame = float("-inf")
 
             for match in matches:
+                print(f"Found {match['id']} (frame_number={match['metadata']['frame_number']})")
                 frame_number = match["metadata"]["frame_number"]
                 if frame_number < min_frame:
                     min_frame = frame_number
@@ -150,6 +175,7 @@ class PineconeQueryText:
             print(f"Found {len(matches)} matches (min_frame={min_frame}, max_frame={max_frame})")
             print(f"The frames found are about {command['query']} (e.g. {matches[0]['id']})")
 
+            # Update the command with the new start and end times
             video_name = matches[0]["metadata"]["video_name"]
             fps = matches[0]["metadata"]["fps"]
 
