@@ -100,7 +100,7 @@ if __name__ == "__main__":
     console.print(Panel("Video Editing Process Started", title="[bold green]Start", expand=False, border_style="green"))
 
     # Get the prompt
-    prompt = "Put the basketball video first. Then query for and put the second half of the obama video."
+    prompt = "Split the obama video in half and put the basketball video between the two halves."
     console.print(Panel(prompt, title="[bold blue]Instructions", expand=False, border_style="blue"))
 
     # Push data to the server and get the video editing information
