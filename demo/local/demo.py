@@ -11,6 +11,9 @@ console = Console()
 def edit_videos(video_info, videos_folder):
     console.print(Panel("Editing Videos", title="[bold blue]Edit Videos", expand=False, border_style="blue"))
 
+    # Sort the video info by the order key
+    video_info = sorted(video_info, key=lambda x: x["order"])
+
     video_clips = []
     for item in video_info:
         video_id = item["id"]
@@ -54,7 +57,7 @@ def get_job_status(job_id):
     return response.json()["status"]
 
 
-def push_data():
+def push_data(prompt):
     console.print(Panel("Pushing Data", title="[bold blue]Push Data", expand=False, border_style="blue"))
 
     # Push a job to the Sieve API
@@ -64,7 +67,7 @@ def push_data():
 
     inputs = {
         "videos": [basketball],
-        "instructions": "Query for the obama video. Put the basketball video first and then the obama video.",
+        "instructions": prompt,
         "user_id": "ishan0102",
     }
 
@@ -96,10 +99,14 @@ def push_data():
 if __name__ == "__main__":
     console.print(Panel("Video Editing Process Started", title="[bold green]Start", expand=False, border_style="green"))
 
-    # Step 1: Push data to the server and get the video editing information
-    video_info = push_data()
+    # Get the prompt
+    prompt = "Put the basketball video first. Then query for and put the second half of the obama video."
+    console.print(Panel(prompt, title="[bold blue]Instructions", expand=False, border_style="blue"))
 
-    # Step 2: Edit videos based on the received information
+    # Push data to the server and get the video editing information
+    video_info = push_data(prompt)
+
+    # Edit videos based on the received information
     edit_videos(video_info, "videos/")
 
     console.print(Panel("Video Editing Process Finished", title="[bold green]Finish", expand=False, border_style="green"))

@@ -174,11 +174,16 @@ class PineconeQueryText:
             print(f"The frames found are about {command['query']} (e.g. {matches[0]['id']})")
 
             # Update the command with the new start and end times
+            total_frames = max_frame - min_frame
+            start_frame = int(min_frame + command["start"] * total_frames)
+            end_frame = int(min_frame + command["end"] * total_frames)
+            print("Frame range:", start_frame, "-", end_frame)
+
             video_name = matches[0]["metadata"]["video_name"]
             fps = matches[0]["metadata"]["fps"]
 
             command["id"] = video_name
-            command["start"] = round(min_frame / fps, 2) * command["start"]
-            command["end"] = round(max_frame / fps, 2) * command["end"]
+            command["start"] = round(start_frame / fps, 2)
+            command["end"] = round(end_frame / fps, 2)
             del command["query"]
             yield command
