@@ -140,7 +140,6 @@ class PineconeQueryText:
             min_frame = float("inf")
             max_frame = float("-inf")
 
-            print(f"Nearest neighbors: {matches}")
             for match in matches:
                 frame_number = match["metadata"]["frame_number"]
                 if frame_number < min_frame:
@@ -148,11 +147,14 @@ class PineconeQueryText:
                 if frame_number > max_frame:
                     max_frame = frame_number
 
+            print(f"Found {len(matches)} matches (min_frame={min_frame}, max_frame={max_frame})")
+            print(f"The frames found are about {command['query']} (e.g. {matches[0]['id']})")
+
             video_name = matches[0]["metadata"]["video_name"]
             fps = matches[0]["metadata"]["fps"]
 
             command["id"] = video_name
-            command["start"] = round(min_frame / fps, 2)
-            command["end"] = round(max_frame / fps, 2)
+            command["start"] = round(min_frame / fps, 2) * command["start"]
+            command["end"] = round(max_frame / fps, 2) * command["end"]
             del command["query"]
             yield command
