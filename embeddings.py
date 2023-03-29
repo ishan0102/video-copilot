@@ -126,13 +126,11 @@ class PineconeQueryText:
             # Encode the query text with CLIP
             print(f"Querying for {command['query']}")
             query = command["query"]
-            for t in query:
-                tokenized = clip.tokenize([t]).to("cpu")
-                text_features = self.model.encode_text(tokenized)
-                features = list(text_features.cpu().detach().numpy()[0])
-                features = [float(x) for x in features]
-
-            print(features)
+            tokenized = clip.tokenize(query).to("cpu")
+            text_features = self.model.encode_text(tokenized)
+            features = list(text_features.cpu().detach().numpy()[0])
+            features = [float(x) for x in features]
+            print(f"Query features: {features}")
 
             # Get the top-k nearest neighbors
             matches = index.query(
